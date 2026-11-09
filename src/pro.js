@@ -17,21 +17,34 @@ function createPro(vscode, context) {
   // name 'Zovo' makes the label "Zovo Pro": one purchase for every Zovo extension.
   const license = createLicense({ vscode, context, sku: SKU, name: 'Zovo', commandPrefix: 'zovoCosmos', product: 'Cosmos DB Client' });
 
-  /** True when the user may run the tool now (unlocked, a free try left, or unlocked in the dialog). */
+  /**
+   * For a Pro tool the user started, after its prompts. Returns false (locked, the user closed the explanation) or a gate
+   * { done() }. VERP3 (10 Nov): a free try is used only when the tool showed its result: call done() after the cost report
+   * is on screen or the copy finished. Escape, Cancel or an error before that costs nothing (as in the other Zovo Pro tools).
+   */
   async function allow(feature, detail) {
-    if (!PRO_ENABLED) return true;
+    const free = { async done() {} };
+    if (!PRO_ENABLED) return free;
     await license.ready;
-    if (license.isPro(SKU)) { license.refresh().catch(() => {}); return true; }
-    const tries = context.globalState.get(TRIES_KEY, {});
-    const used = Number(tries[feature] || 0);
+    if (license.isPro(SKU)) { license.refresh().catch(() => {}); return free; }
+    const used = Number(context.globalState.get(TRIES_KEY, {})[feature] || 0);
     if (used < FREE_TRIES) {
-      tries[feature] = used + 1;
-      await context.globalState.update(TRIES_KEY, tries);
-      const left = FREE_TRIES - used - 1;
-      vscode.window.setStatusBarMessage(`Cosmos DB: ${feature} is a Zovo Pro tool. Free try ${used + 1} of ${FREE_TRIES}${left ? ` (${left} left)` : ', the last one'}.`, 8000);
-      return true;
+      let spent = false;
+      return {
+        async done() {
+          if (spent) return;
+          spent = true;
+          const tries = Object.assign({}, context.globalState.get(TRIES_KEY, {}));
+          const n = Number(tries[feature] || 0) + 1;
+          tries[feature] = n;
+          await context.globalState.update(TRIES_KEY, tries);
+          const left = Math.max(0, FREE_TRIES - n);
+          vscode.window.setStatusBarMessage(`Cosmos DB: ${feature} is a Zovo Pro tool. Free try ${n} of ${FREE_TRIES}${left ? ` (${left} left)` : ', the last one'}.`, 8000);
+        },
+      };
     }
-    return license.requirePro(feature, `${detail} You used your ${FREE_TRIES} free tries. Zovo Pro is USD 19 once and unlocks the Pro tools in every Zovo extension. Queries, editing, export, import and unlimited connections stay free.`);
+    const ok = await license.requirePro(feature, `${detail} You used your ${FREE_TRIES} free tries. Zovo Pro is USD 19 once and unlocks the Pro tools in every Zovo extension. Queries, editing, export, import and unlimited connections stay free.`);
+    return ok ? free : false;
   }
 
   function triesLeft(feature) {

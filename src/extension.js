@@ -480,7 +480,9 @@ function activate(context) {
     const prepared = prepareQuery(ed.selection.isEmpty ? doc.getText() : doc.getText(ed.selection));
     if (prepared.empty) { vscode.window.showInformationMessage('There is no query in this file.'); return; }
     if (prepared.missing.length) { vscode.window.showInformationMessage(`Define ${prepared.missing.join(', ')} in the file first, e.g. a line "-- ${prepared.missing[0]} = 42".`); return; }
-    if (!(await proApi.allow('Query Cost Report', 'The Query Cost Report runs the query to the end and shows its request units, documents loaded against returned, index use and the indexes the server suggests, with a ready indexing policy.'))) return;
+    const gate = await proApi.allow('Query Cost Report', 'The Query Cost Report runs the query to the end and shows its request units, documents loaded against returned, index use and the indexes the server suggests, with a ready indexing policy.');
+    if (!gate) return;
+    let cancelled = false;
     const conn = store.get(b.connId);
     const a = await accounts.get(b.connId);
     const maxPages = settings().costReportMaxPages;
@@ -491,7 +493,7 @@ function activate(context) {
         const it = a.query(b.db, b.container, { query: prepared.query, parameters: prepared.parameters }, { maxItemCount: 1000, metrics: true, indexMetrics: true });
         const pages = []; let indexMetrics = null; let truncated = false;
         while (it.hasMore()) {
-          if (token.isCancellationRequested || pages.length >= maxPages) { truncated = true; break; }
+          if (token.isCancellationRequested || pages.length >= maxPages) { truncated = true; cancelled = token.isCancellationRequested; break; }
           const p = await it.next();
           if (!indexMetrics && p.indexMetrics) indexMetrics = p.indexMetrics;
           pages.push({ page: p.page, items: p.items.length, charge: p.charge, ms: p.ms, metrics: p.metrics });
@@ -509,6 +511,7 @@ function activate(context) {
     const td = await vscode.workspace.openTextDocument({ language: 'markdown', content: md });
     await vscode.window.showTextDocument(td, { preview: false, viewColumn: vscode.ViewColumn.Active });
     try { await vscode.commands.executeCommand('markdown.showPreview', td.uri); } catch { /* the text stays open */ }
+    if (!cancelled) await gate.done(); // the try counts only now, with the report on screen; Cancel or an error costs nothing
   }
 
   // ---------- Pro: Copy Container ----------
@@ -531,7 +534,8 @@ function activate(context) {
     if (dstConn.id === src.connId && dstDb === src.db && dstName === src.container) { vscode.window.showWarningMessage('The target is the source container. Pick another name or database.'); return; }
     const go = await vscode.window.showWarningMessage(`Copy every item of ${src.container} to ${dstConn.name} › ${dstDb} › ${dstName}?`, { modal: true, detail: 'Items with the same id and partition key in the target are replaced. The source is only read. Reads and writes use request units on both accounts.' }, 'Copy');
     if (go !== 'Copy') return;
-    if (!(await proApi.allow('Copy Container', 'Copy Container streams every item of a container to another container, in the same or another account (for example from production to the emulator), with progress and the RU used.'))) return;
+    const gate = await proApi.allow('Copy Container', 'Copy Container streams every item of a container to another container, in the same or another account (for example from production to the emulator), with progress and the RU used.');
+    if (!gate) return;
     const { copyContainer: copy } = require('./transfer');
     let res;
     try {
@@ -543,6 +547,7 @@ function activate(context) {
     } catch (e) { vscode.window.showErrorMessage(`Copy stopped: ${e.friendly ? e.message : errorText(e)}`); return; }
     const msg = `${res.cancelled ? 'Copy stopped' : 'Copy done'}: ${res.ok.toLocaleString('en-US')} of ${res.read.toLocaleString('en-US')} items written to ${dstName}${res.created ? ' (new container)' : ''}, ${res.failed} failed. ${fmtRu(res.readCharge)} RU read, ${fmtRu(res.writeCharge)} RU written.`;
     if (res.errors.length) { output.appendLine(msg); for (const e of res.errors) output.appendLine(`  ${e}`); vscode.window.showWarningMessage(`${msg} First problem: ${res.errors[0]}`, 'Show Details').then((p) => p && output.show(true)); } else vscode.window.showInformationMessage(msg);
+    if (!res.cancelled) await gate.done(); // a finished copy counts; Cancel or an error costs nothing
     tree.refresh();
   }
 
