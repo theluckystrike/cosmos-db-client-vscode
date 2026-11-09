@@ -1,0 +1,15 @@
+{
+  "scopeName": "source.cosmos-nosql",
+  "name": "Cosmos DB NoSQL",
+  "patterns": [
+    { "name": "comment.line.double-dash.cosmos-nosql", "match": "--.*$" },
+    { "name": "comment.line.double-slash.cosmos-nosql", "match": "//.*$" },
+    { "name": "string.quoted.double.cosmos-nosql", "begin": "\"", "end": "\"", "patterns": [{ "name": "constant.character.escape.cosmos-nosql", "match": "\\\\." }] },
+    { "name": "string.quoted.single.cosmos-nosql", "begin": "'", "end": "'", "patterns": [{ "name": "constant.character.escape.cosmos-nosql", "match": "\\\\." }] },
+    { "name": "variable.parameter.cosmos-nosql", "match": "@[A-Za-z_][A-Za-z0-9_]*" },
+    { "name": "keyword.other.cosmos-nosql", "match": "(?i)\\b(select|value|top|distinct|from|where|and|or|not|in|between|like|escape|order\\s+by|group\\s+by|asc|desc|offset|limit|join|as|exists|array|udf)\\b" },
+    { "name": "constant.language.cosmos-nosql", "match": "(?i)\\b(true|false|null|undefined)\\b" },
+    { "name": "support.function.cosmos-nosql", "match": "(?i)\\b[A-Z_][A-Z0-9_]*(?=\\s*\\()" },
+    { "name": "constant.numeric.cosmos-nosql", "match": "-?\\b\\d+(\\.\\d+)?([eE][+-]?\\d+)?\\b" }
+  ]
+}

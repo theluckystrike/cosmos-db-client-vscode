@@ -1,0 +1,609 @@
+{
+  "name": "zovo-cosmos-db-client",
+  "displayName": "Cosmos DB Client & Azure Cosmos DB Explorer (CosmosDB NoSQL Query, Emulator)",
+  "description": "Free Cosmos DB client for VS Code: connect to Azure Cosmos DB with a connection string or the local emulator in one click, no Azure sign-in. Run NoSQL queries with the RU charge and query metrics on every page, page with continuation tokens, edit items with ETag checks, export JSON/CSV, import JSONL. Exact big numbers, no telemetry.",
+  "version": "0.1.0",
+  "publisher": "zovo",
+  "license": "MIT",
+  "icon": "icon.png",
+  "galleryBanner": {
+    "color": "#0E1E36",
+    "theme": "dark"
+  },
+  "engines": {
+    "vscode": "^1.90.0",
+    "node": ">=18"
+  },
+  "categories": [
+    "Azure",
+    "Data Science",
+    "Other"
+  ],
+  "keywords": [
+    "cosmos db",
+    "cosmosdb",
+    "azure cosmos db",
+    "cosmos db client",
+    "cosmos db explorer",
+    "nosql",
+    "cosmos emulator",
+    "sql api",
+    "partition key",
+    "request units",
+    "documentdb",
+    "azure",
+    "database client",
+    "json",
+    "query"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onFileSystem:cosmos-item"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "Connections are stored per user, not per workspace. Nothing runs from the workspace."
+    },
+    "virtualWorkspaces": true
+  },
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "zovoCosmos",
+          "title": "Cosmos DB",
+          "icon": "media/activity.svg"
+        }
+      ]
+    },
+    "views": {
+      "zovoCosmos": [
+        {
+          "id": "zovoCosmos.explorer",
+          "name": "Cosmos DB Explorer",
+          "icon": "media/activity.svg",
+          "contextualTitle": "Cosmos DB"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "zovoCosmos.explorer",
+        "contents": "No connections yet. Free, no Azure sign-in needed.\n[Connect to Local Emulator](command:zovoCosmos.connectEmulator)\n[Add Connection](command:zovoCosmos.addConnection)\nPaste a connection string, or an endpoint and key. Keys stay in VS Code secret storage. The extension talks only to the endpoints you add. [Get started](command:zovoCosmos.openWalkthrough)"
+      }
+    ],
+    "languages": [
+      {
+        "id": "cosmos-nosql",
+        "aliases": [
+          "Cosmos DB NoSQL",
+          "cosmosdb"
+        ],
+        "extensions": [
+          ".nosql"
+        ],
+        "configuration": "./media/language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "cosmos-nosql",
+        "scopeName": "source.cosmos-nosql",
+        "path": "./media/cosmos-nosql.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "zovoCosmos.addConnection",
+        "title": "Add Connection",
+        "category": "Cosmos DB",
+        "icon": "$(add)"
+      },
+      {
+        "command": "zovoCosmos.connectEmulator",
+        "title": "Connect to Local Emulator",
+        "category": "Cosmos DB",
+        "icon": "$(vm)"
+      },
+      {
+        "command": "zovoCosmos.editConnection",
+        "title": "Edit Connection",
+        "category": "Cosmos DB",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "zovoCosmos.deleteConnection",
+        "title": "Delete Connection",
+        "category": "Cosmos DB",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "zovoCosmos.toggleReadOnly",
+        "title": "Toggle Read-Only for This Connection",
+        "category": "Cosmos DB",
+        "icon": "$(lock)"
+      },
+      {
+        "command": "zovoCosmos.disconnect",
+        "title": "Disconnect",
+        "category": "Cosmos DB",
+        "icon": "$(debug-disconnect)"
+      },
+      {
+        "command": "zovoCosmos.refresh",
+        "title": "Refresh",
+        "category": "Cosmos DB",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "zovoCosmos.newQuery",
+        "title": "New Query",
+        "category": "Cosmos DB",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "zovoCosmos.queryContainer",
+        "title": "Query Container (SELECT * FROM c)",
+        "category": "Cosmos DB",
+        "icon": "$(play)"
+      },
+      {
+        "command": "zovoCosmos.runQuery",
+        "title": "Run Query",
+        "category": "Cosmos DB",
+        "icon": "$(play)"
+      },
+      {
+        "command": "zovoCosmos.selectTarget",
+        "title": "Choose Container for This Query File",
+        "category": "Cosmos DB",
+        "icon": "$(database)"
+      },
+      {
+        "command": "zovoCosmos.stop",
+        "title": "Stop Loading Pages",
+        "category": "Cosmos DB",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "zovoCosmos.newItem",
+        "title": "New Item",
+        "category": "Cosmos DB",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "zovoCosmos.deleteItem",
+        "title": "Delete This Item",
+        "category": "Cosmos DB",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "zovoCosmos.exportContainer",
+        "title": "Export All Items (JSON, JSONL, CSV)…",
+        "category": "Cosmos DB",
+        "icon": "$(export)"
+      },
+      {
+        "command": "zovoCosmos.importItems",
+        "title": "Import Items from JSON or JSONL…",
+        "category": "Cosmos DB",
+        "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "zovoCosmos.showContainerSettings",
+        "title": "Show Container Settings",
+        "category": "Cosmos DB",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "zovoCosmos.openScript",
+        "title": "Open Script",
+        "category": "Cosmos DB",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "zovoCosmos.executeStoredProcedure",
+        "title": "Run Stored Procedure…",
+        "category": "Cosmos DB",
+        "icon": "$(play)"
+      },
+      {
+        "command": "zovoCosmos.copyPath",
+        "title": "Copy Name",
+        "category": "Cosmos DB"
+      },
+      {
+        "command": "zovoCosmos.costReport",
+        "title": "Query Cost Report (Pro)",
+        "category": "Cosmos DB",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "zovoCosmos.copyContainer",
+        "title": "Copy Container to Another Account (Pro)",
+        "category": "Cosmos DB",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "zovoCosmos.openWalkthrough",
+        "title": "Get Started",
+        "category": "Cosmos DB"
+      },
+      {
+        "command": "zovoCosmos.supportDeveloper",
+        "title": "Support the developer",
+        "category": "Cosmos DB"
+      },
+      {
+        "command": "zovoCosmos.moreViewers",
+        "title": "More free tools by Zovo",
+        "category": "Cosmos DB"
+      },
+      {
+        "command": "zovoCosmos.enterLicenseKey",
+        "title": "Zovo: Enter license key",
+        "category": "Cosmos DB"
+      },
+      {
+        "command": "zovoCosmos.getPro",
+        "title": "Zovo: Get Pro (USD 19 once, all Zovo extensions)",
+        "category": "Cosmos DB"
+      },
+      {
+        "command": "zovoCosmos.unlockWithSponsors",
+        "title": "Zovo: Unlock Pro with GitHub Sponsors",
+        "category": "Cosmos DB"
+      },
+      {
+        "command": "zovoCosmos.payWithPayPal",
+        "title": "Zovo: Pay for Zovo Pro with PayPal (USD 19, team of 5 USD 59)",
+        "category": "Cosmos DB"
+      },
+      {
+        "command": "zovoCosmos.removeLicense",
+        "title": "Zovo: Remove license from this editor",
+        "category": "Cosmos DB"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "zovoCosmos.runQuery",
+        "key": "ctrl+enter",
+        "mac": "cmd+enter",
+        "when": "editorTextFocus && editorLangId == cosmos-nosql"
+      },
+      {
+        "command": "zovoCosmos.stop",
+        "key": "ctrl+alt+c",
+        "mac": "cmd+alt+c",
+        "when": "zovoCosmos.running"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "zovoCosmos.addConnection",
+          "when": "view == zovoCosmos.explorer",
+          "group": "navigation@1"
+        },
+        {
+          "command": "zovoCosmos.connectEmulator",
+          "when": "view == zovoCosmos.explorer",
+          "group": "navigation@2"
+        },
+        {
+          "command": "zovoCosmos.refresh",
+          "when": "view == zovoCosmos.explorer",
+          "group": "navigation@3"
+        },
+        {
+          "command": "zovoCosmos.newQuery",
+          "when": "view == zovoCosmos.explorer",
+          "group": "2_more@1"
+        },
+        {
+          "command": "zovoCosmos.moreViewers",
+          "when": "view == zovoCosmos.explorer",
+          "group": "3_zovo@1"
+        },
+        {
+          "command": "zovoCosmos.supportDeveloper",
+          "when": "view == zovoCosmos.explorer",
+          "group": "3_zovo@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "zovoCosmos.newQuery",
+          "when": "view == zovoCosmos.explorer && viewItem =~ /^(connection|database|container)/",
+          "group": "inline@1"
+        },
+        {
+          "command": "zovoCosmos.newQuery",
+          "when": "view == zovoCosmos.explorer && viewItem =~ /^(connection|database|container)/",
+          "group": "1_query@1"
+        },
+        {
+          "command": "zovoCosmos.queryContainer",
+          "when": "view == zovoCosmos.explorer && viewItem == container",
+          "group": "1_query@2"
+        },
+        {
+          "command": "zovoCosmos.newItem",
+          "when": "view == zovoCosmos.explorer && viewItem == container",
+          "group": "1_query@3"
+        },
+        {
+          "command": "zovoCosmos.exportContainer",
+          "when": "view == zovoCosmos.explorer && viewItem == container",
+          "group": "2_data@1"
+        },
+        {
+          "command": "zovoCosmos.importItems",
+          "when": "view == zovoCosmos.explorer && viewItem == container",
+          "group": "2_data@2"
+        },
+        {
+          "command": "zovoCosmos.showContainerSettings",
+          "when": "view == zovoCosmos.explorer && viewItem == container",
+          "group": "2_data@3"
+        },
+        {
+          "command": "zovoCosmos.copyContainer",
+          "when": "view == zovoCosmos.explorer && viewItem == container && config.zovoCosmos.showProFeatures",
+          "group": "3_pro@1"
+        },
+        {
+          "command": "zovoCosmos.refresh",
+          "when": "view == zovoCosmos.explorer && viewItem =~ /^(connection|database|container|scripts)/",
+          "group": "4_misc@1"
+        },
+        {
+          "command": "zovoCosmos.copyPath",
+          "when": "view == zovoCosmos.explorer && viewItem =~ /^(database|container)/",
+          "group": "4_misc@2"
+        },
+        {
+          "command": "zovoCosmos.editConnection",
+          "when": "view == zovoCosmos.explorer && viewItem =~ /^connection/",
+          "group": "5_conn@1"
+        },
+        {
+          "command": "zovoCosmos.toggleReadOnly",
+          "when": "view == zovoCosmos.explorer && viewItem =~ /^connection/",
+          "group": "5_conn@2"
+        },
+        {
+          "command": "zovoCosmos.disconnect",
+          "when": "view == zovoCosmos.explorer && viewItem =~ /^connection/",
+          "group": "5_conn@3"
+        },
+        {
+          "command": "zovoCosmos.deleteConnection",
+          "when": "view == zovoCosmos.explorer && viewItem =~ /^connection/",
+          "group": "5_conn@4"
+        },
+        {
+          "command": "zovoCosmos.executeStoredProcedure",
+          "when": "view == zovoCosmos.explorer && viewItem == script.storedProcedures",
+          "group": "inline@1"
+        },
+        {
+          "command": "zovoCosmos.executeStoredProcedure",
+          "when": "view == zovoCosmos.explorer && viewItem == script.storedProcedures",
+          "group": "1_run@1"
+        },
+        {
+          "command": "zovoCosmos.openScript",
+          "when": "view == zovoCosmos.explorer && viewItem =~ /^script/",
+          "group": "1_run@2"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "zovoCosmos.runQuery",
+          "when": "editorLangId == cosmos-nosql",
+          "group": "navigation@1"
+        },
+        {
+          "command": "zovoCosmos.selectTarget",
+          "when": "editorLangId == cosmos-nosql",
+          "group": "navigation@2"
+        },
+        {
+          "command": "zovoCosmos.deleteItem",
+          "when": "resourceScheme == cosmos-item",
+          "group": "navigation@1"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "zovoCosmos.runQuery",
+          "when": "editorLangId == cosmos-nosql",
+          "group": "zovoCosmos@1"
+        },
+        {
+          "command": "zovoCosmos.selectTarget",
+          "when": "editorLangId == cosmos-nosql",
+          "group": "zovoCosmos@2"
+        },
+        {
+          "command": "zovoCosmos.costReport",
+          "when": "editorLangId == cosmos-nosql && config.zovoCosmos.showProFeatures",
+          "group": "zovoCosmos@3"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "zovoCosmos.openScript",
+          "when": "false"
+        },
+        {
+          "command": "zovoCosmos.copyPath",
+          "when": "false"
+        },
+        {
+          "command": "zovoCosmos.disconnect",
+          "when": "false"
+        },
+        {
+          "command": "zovoCosmos.executeStoredProcedure",
+          "when": "false"
+        },
+        {
+          "command": "zovoCosmos.deleteItem",
+          "when": "resourceScheme == cosmos-item"
+        },
+        {
+          "command": "zovoCosmos.stop",
+          "when": "zovoCosmos.running"
+        },
+        {
+          "command": "zovoCosmos.costReport",
+          "when": "config.zovoCosmos.showProFeatures"
+        },
+        {
+          "command": "zovoCosmos.copyContainer",
+          "when": "config.zovoCosmos.showProFeatures"
+        },
+        {
+          "command": "zovoCosmos.getPro",
+          "when": "config.zovoCosmos.showProFeatures"
+        },
+        {
+          "command": "zovoCosmos.enterLicenseKey",
+          "when": "config.zovoCosmos.showProFeatures"
+        },
+        {
+          "command": "zovoCosmos.unlockWithSponsors",
+          "when": "config.zovoCosmos.showProFeatures"
+        },
+        {
+          "command": "zovoCosmos.payWithPayPal",
+          "when": "config.zovoCosmos.showProFeatures"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Cosmos DB Client",
+      "properties": {
+        "zovoCosmos.pageSize": {
+          "type": "number",
+          "default": 100,
+          "minimum": 1,
+          "maximum": 1000,
+          "description": "Items per page (max item count). \"Load more\" reads the next page with the continuation token."
+        },
+        "zovoCosmos.maxLoadedItems": {
+          "type": "number",
+          "default": 50000,
+          "minimum": 1000,
+          "description": "At most this many items stay in one results view. \"Load all\" keeps reading and counting after that; exports stream every item to the file."
+        },
+        "zovoCosmos.timeoutSeconds": {
+          "type": "number",
+          "default": 30,
+          "minimum": 3,
+          "maximum": 600,
+          "description": "Give up a request after this many seconds, with a clear message instead of a hang. \"Load all\" tries a timed-out page 2 more times before it stops."
+        },
+        "zovoCosmos.emulatorPort": {
+          "type": "number",
+          "default": 8081,
+          "description": "Port of the local Cosmos DB emulator for \"Connect to Local Emulator\"."
+        },
+        "zovoCosmos.exportSystemProperties": {
+          "type": "boolean",
+          "default": false,
+          "description": "Keep _rid, _self, _etag, _attachments and _ts in exports. Off: exports can be imported again as they are."
+        },
+        "zovoCosmos.costReportMaxPages": {
+          "type": "number",
+          "default": 200,
+          "minimum": 1,
+          "description": "The Query Cost Report stops after this many pages of 1,000 items."
+        },
+        "zovoCosmos.askForRating": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ask for a Marketplace rating after 2 good sessions at least 4 hours apart. \"Later\" asks once more after 7 days, \"No thanks\" never asks again. Never after an error. Nothing is sent anywhere."
+        },
+        "zovoCosmos.showSupportLinks": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the small Rate, More free tools, Sponsor and PayPal links under the results. Nothing is sent anywhere."
+        },
+        "zovoCosmos.showProFeatures": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the Zovo Pro tools (Query Cost Report, Copy Container) and the Zovo Pro commands in menus and the command palette. Set it to false to hide them. Everything free keeps working."
+        }
+      }
+    },
+    "walkthroughs": [
+      {
+        "id": "zovoCosmos.start",
+        "title": "Get started with the Cosmos DB Client",
+        "description": "Connect to Azure Cosmos DB or the local emulator, run queries with the RU charge on every page, edit items.",
+        "steps": [
+          {
+            "id": "connect",
+            "title": "Connect",
+            "description": "Start the emulator and click Connect to Local Emulator, or paste a connection string from Keys in the Azure portal. No Azure sign-in.\n[Connect to Local Emulator](command:zovoCosmos.connectEmulator)\n[Add Connection](command:zovoCosmos.addConnection)",
+            "media": {
+              "markdown": "walkthrough/connect.md"
+            },
+            "completionEvents": [
+              "onCommand:zovoCosmos.addConnection",
+              "onCommand:zovoCosmos.connectEmulator"
+            ]
+          },
+          {
+            "id": "query",
+            "title": "Run a query",
+            "description": "Click a container: it opens SELECT * FROM c and runs it. Ctrl+Enter (Cmd+Enter on macOS) runs your own query. Every page shows its request units and query metrics; Load more reads the next page.",
+            "media": {
+              "image": "images/screenshot-dark.png",
+              "altText": "A Cosmos DB query with its results in a grid, the RU charge and query metrics above it, and the Cosmos DB Explorer on the left."
+            },
+            "completionEvents": [
+              "onCommand:zovoCosmos.runQuery",
+              "onCommand:zovoCosmos.queryContainer"
+            ]
+          },
+          {
+            "id": "edit",
+            "title": "Edit, export, import",
+            "description": "Double-click a row to open the item; Ctrl+S saves it with an ETag check. Export streams every item to JSON, JSONL or CSV. Import reads JSON or JSONL in batches with a progress bar.",
+            "media": {
+              "markdown": "walkthrough/edit.md"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "build": "node scripts/build.js --production",
+    "test": "node scripts/build.js --production && ZOVO_SPONSORS_MODULE=$PWD/src/license/sponsors.js node --test \"test/*.test.js\"",
+    "test:it": "ZOVO_COSMOS_IT=1 node --test --test-concurrency=1 test/integration.test.js",
+    "package": "npm run build && npx -y @vscode/vsce package --no-dependencies -o dist/"
+  },
+  "devDependencies": {
+    "@azure/cosmos": "4.10.2",
+    "@types/vscode": "~1.90.0",
+    "esbuild": "0.28.2"
+  },
+  "homepage": "https://github.com/theluckystrike/cosmos-db-client-vscode#readme",
+  "bugs": {
+    "url": "https://github.com/theluckystrike/cosmos-db-client-vscode/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/theluckystrike/cosmos-db-client-vscode"
+  },
+  "sponsor": {
+    "url": "https://github.com/sponsors/theluckystrike"
+  }
+}

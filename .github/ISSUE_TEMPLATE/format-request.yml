@@ -1,0 +1,44 @@
+# Made by factory/sprint/monetize.py (CUSTOM1). Edit the generator, not this file.
+name: Format request
+description: "Ask for a file format or a missing feature. Attach a sample file."
+title: "Format request: "
+labels: ["format-request"]
+body:
+  - type: markdown
+    attributes:
+      value: "Ask for a file format, or a missing feature, in this extension. Issues are public, so attach a small sample with dummy data, not a confidential file. A link to the format spec helps too. Paid option: USD 299 once, through [this GitHub Sponsors tier](https://github.com/sponsors/theluckystrike/sponsorships?tier_id=679995). Pay only after I confirm in this issue that it can be done. It then ships with tests within 7 days."
+  - type: input
+    id: format
+    attributes:
+      label: File format or feature
+      description: The file extension and the program that writes it, or the feature you miss.
+      placeholder: ".abc files from Example Logger 4.2"
+    validations:
+      required: true
+  - type: textarea
+    id: sample
+    attributes:
+      label: Sample file
+      description: Drag a small sample file here, or paste a link to one. No confidential data.
+    validations:
+      required: true
+  - type: textarea
+    id: want
+    attributes:
+      label: What should the viewer show or do?
+    validations:
+      required: true
+  - type: dropdown
+    id: paid
+    attributes:
+      label: Paid or free?
+      options:
+        - "Paid: USD 299 once, after you confirm it can be done"
+        - Free request, done when there is time
+    validations:
+      required: true
+  - type: input
+    id: editor
+    attributes:
+      label: Editor and extension version
+      placeholder: "VS Code 1.105, Hex Viewer 0.3.0"
